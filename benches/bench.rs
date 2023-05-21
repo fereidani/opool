@@ -75,9 +75,7 @@ const BUF_SIZE: usize = 1024 * 8;
 impl PoolAllocator<Vec<u8>> for MyAllocator {
     #[inline]
     fn allocate(&self) -> Vec<u8> {
-        let mut buf = Vec::with_capacity(BUF_SIZE);
-        buf.resize(BUF_SIZE, 0);
-        buf
+        vec![0; BUF_SIZE]
     }
 
     // Optionally you can provide
