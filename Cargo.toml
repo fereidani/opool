@@ -1,0 +1,23 @@
+[package]
+name = "opool"
+version = "0.1.0"
+edition = "2021"
+authors = ["Khashayar Fereidani"]
+description = "Fast lock-free concurrent and local automaticly collected object pool"
+repository = "https://github.com/fereidani/opool"
+documentation = "https://docs.rs/opool"
+keywords = ["pool", "object-pool", "lock-free", "no_std"]
+categories = ["memory-management", "concurrency", "no-std"]
+license = "MIT"
+readme = "README.md"
+
+[dependencies]
+crossbeam-queue = "0.3"
+
+[dev-dependencies]
+criterion = "0.4"
+rayon = "1"
+
+[[bench]]
+name = "bench"
+harness = false
