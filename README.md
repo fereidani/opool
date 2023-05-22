@@ -7,7 +7,7 @@
 [crates-badge]: https://img.shields.io/crates/v/opool.svg?style=for-the-badge
 [crates-url]: https://crates.io/crates/opool
 [mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge
-[mit-url]: https://github.com/fereidani/opool/blob/master/LICENSE
+[mit-url]: https://github.com/fereidani/opool/blob/main/LICENSE
 [doc-badge]: https://img.shields.io/docsrs/opool?style=for-the-badge
 [doc-url]: https://docs.rs/opool
 
