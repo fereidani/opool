@@ -1,5 +1,16 @@
 # Opool: Fast lock-free concurrent and local object pool
 
+[![Crates.io][crates-badge]][crates-url]
+[![Documentation][doc-badge]][doc-url]
+[![MIT licensed][mit-badge]][mit-url]
+
+[crates-badge]: https://img.shields.io/crates/v/opool.svg?style=for-the-badge
+[crates-url]: https://crates.io/crates/opool
+[mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg?style=for-the-badge
+[mit-url]: https://github.com/fereidani/opool/blob/master/LICENSE
+[doc-badge]: https://img.shields.io/docsrs/opool?style=for-the-badge
+[doc-url]: https://docs.rs/opool
+
 Opool is a Rust library that provides a highly optimized object pool implementation. It is designed to be efficient and flexible, allowing you to manage the lifecycle of your objects and reuse them to reduce allocation overhead. Opool supports `no_std` with alloc available.
 
 - **[`PoolAllocator`] Trait**: This trait defines the interface for a pool allocator. It includes methods for allocating, resetting, and validating objects. The resetting and validating functions are optional.
