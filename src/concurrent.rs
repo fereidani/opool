@@ -78,6 +78,23 @@ impl<P: PoolAllocator<T>, T> Pool<P, T> {
             None => RcGuard::new(self.allocator.allocate(), &self),
         }
     }
+
+    /// Gets the number of objects currently in the pool.
+    ///
+    /// Returns the length of the internal storage, indicating the number of
+    /// objects that are ready to be recycled from the pool.
+    pub fn len(&self) -> usize {
+        self.storage.len()
+    }
+
+    /// Gets the capacity of the pool.
+    ///
+    /// Returns the maximum number of objects that the pool can hold. This does
+    /// not indicate the maximum number of objects that can be allocated,
+    /// but maximum objects that can be stored and recycled from the pool.
+    pub fn cap(&self) -> usize {
+        self.storage.capacity()
+    }
 }
 
 /// A struct representing a guard over an object in the pool.

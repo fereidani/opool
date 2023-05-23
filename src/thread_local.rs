@@ -51,11 +51,18 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
         }
     }
 
-    /// Get storage
+    /// Get storage as mutable reference
     /// Safety: it's safe to call only if the pool is used by a single threaded.
     #[allow(clippy::mut_from_ref)]
-    fn get_storage(&self) -> &mut VecDeque<T> {
+    fn storage_mut(&self) -> &mut VecDeque<T> {
         unsafe { &mut *self.storage.get() }
+    }
+
+    /// Borrows storage as immutable reference
+    /// Safety: it's safe to call only if the pool is used by a single threaded.
+    #[allow(clippy::mut_from_ref)]
+    fn storage_borrow(&self) -> &VecDeque<T> {
+        unsafe { &*self.storage.get() }
     }
 
     /// Wraps the pool allocator with an reference counter, enabling the
@@ -69,7 +76,7 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
     ///
     /// If the pool is empty, a new object is created using the allocator.
     pub fn get(&self) -> RefLocalGuard<P, T> {
-        match self.get_storage().pop_front() {
+        match self.storage_mut().pop_front() {
             Some(mut obj) => {
                 self.allocator.reset(&mut obj);
                 RefLocalGuard::new(obj, self)
@@ -85,13 +92,30 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
     ///
     /// If the pool is empty, a new object is created using the allocator.
     pub fn get_rc(self: Rc<Self>) -> RcLocalGuard<P, T> {
-        match self.get_storage().pop_front() {
+        match self.storage_mut().pop_front() {
             Some(mut obj) => {
                 self.allocator.reset(&mut obj);
                 RcLocalGuard::new(obj, &self)
             }
             None => RcLocalGuard::new(self.allocator.allocate(), &self),
         }
+    }
+
+    /// Gets the number of objects currently in the pool.
+    ///
+    /// Returns the length of the internal storage, indicating the number of
+    /// objects that are ready to be recycled from the pool.
+    pub fn len(&self) -> usize {
+        self.storage_borrow().len()
+    }
+
+    /// Gets the capacity of the pool.
+    ///
+    /// Returns the maximum number of objects that the pool can hold. This does
+    /// not indicate the maximum number of objects that can be allocated,
+    /// but maximum objects that can be stored and recycled from the pool.
+    pub fn cap(&self) -> usize {
+        self.storage_borrow().capacity()
     }
 }
 
@@ -146,7 +170,7 @@ impl<'a, P: PoolAllocator<T>, T> DerefMut for RefLocalGuard<'a, P, T> {
 /// dropped, unless the object fails validation.
 impl<'a, P: PoolAllocator<T>, T> Drop for RefLocalGuard<'a, P, T> {
     fn drop(&mut self) {
-        let storage = self.pool.get_storage();
+        let storage = self.pool.storage_mut();
         if self.pool.allocator.is_valid(self.deref()) && storage.len() < storage.capacity() {
             // Safety: object is not moved and valid for this single move to the pool.
             storage.push_back(unsafe { ptr::read(self.obj.as_mut_ptr()) });
@@ -282,7 +306,7 @@ impl<P: PoolAllocator<T>, T> DerefMut for RcLocalGuard<P, T> {
 /// dropped, unless the object fails validation.
 impl<P: PoolAllocator<T>, T> Drop for RcLocalGuard<P, T> {
     fn drop(&mut self) {
-        let storage = self.pool.get_storage();
+        let storage = self.pool.storage_mut();
         if self.pool.allocator.is_valid(self.deref()) && storage.len() < storage.capacity() {
             // Safety: object is not moved and valid for this single move to the pool.
             storage.push_back(unsafe { ptr::read(self.obj.as_mut_ptr()) });
