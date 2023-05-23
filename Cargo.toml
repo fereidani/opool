@@ -1,9 +1,9 @@
 [package]
 name = "opool"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Khashayar Fereidani"]
-description = "Fast lock-free concurrent and local automaticly collected object pool"
+description = "High-performance, lock-free local and concurrent object pool with automated allocation, cleanup, and verification."
 repository = "https://github.com/fereidani/opool"
 documentation = "https://docs.rs/opool"
 keywords = ["pool", "object-pool", "lock-free", "no_std"]
