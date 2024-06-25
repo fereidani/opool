@@ -13,27 +13,15 @@ use crossbeam_queue::ArrayQueue;
 /// This struct uses an allocator to create and manage objects, and stores them
 /// in an ArrayQueue.
 #[derive(Debug)]
-pub struct Pool<P: PoolAllocator<T>, T> {
+pub struct Pool<P, T> {
     allocator: P,
     storage: ArrayQueue<T>,
 }
 
 // If T is Send it is safe to move object pool between threads
-unsafe impl<P: PoolAllocator<T>, T: Send> Send for Pool<P, T> {}
+unsafe impl<P: Send, T: Send> Send for Pool<P, T> {}
 
-impl<P: PoolAllocator<T>, T> Pool<P, T> {
-    /// Creates a new Pool with a given size and allocator.
-    ///
-    /// This method immediately fills the pool with new objects created by the
-    /// allocator.
-    pub fn new_prefilled(pool_size: usize, allocator: P) -> Self {
-        let storage = ArrayQueue::new(pool_size);
-        for _ in 0..pool_size {
-            let _ = storage.push(allocator.allocate());
-        }
-        Pool { allocator, storage }
-    }
-
+impl<P, T> Pool<P, T> {
     /// Creates a new Object Pool with a given size and allocator.
     ///
     /// Unlike [`Self::new_prefilled`], this method does not immediately fill
@@ -48,6 +36,37 @@ impl<P: PoolAllocator<T>, T> Pool<P, T> {
     /// reference counted references instead of borrowed references.
     pub fn to_rc(self) -> Arc<Self> {
         Arc::new(self)
+    }
+
+    /// Gets the number of objects currently in the pool.
+    ///
+    /// Returns the length of the internal storage, indicating the number of
+    /// objects that are ready to be recycled from the pool.
+    pub fn len(&self) -> usize {
+        self.storage.len()
+    }
+
+    /// Gets the capacity of the pool.
+    ///
+    /// Returns the maximum number of objects that the pool can hold. This does
+    /// not indicate the maximum number of objects that can be allocated,
+    /// but maximum objects that can be stored and recycled from the pool.
+    pub fn cap(&self) -> usize {
+        self.storage.capacity()
+    }
+}
+
+impl<P: PoolAllocator<T>, T> Pool<P, T> {
+    /// Creates a new Pool with a given size and allocator.
+    ///
+    /// This method immediately fills the pool with new objects created by the
+    /// allocator.
+    pub fn new_prefilled(pool_size: usize, allocator: P) -> Self {
+        let storage = ArrayQueue::new(pool_size);
+        for _ in 0..pool_size {
+            let _ = storage.push(allocator.allocate());
+        }
+        Pool { allocator, storage }
     }
 
     /// Gets an object from the pool.
@@ -77,23 +96,6 @@ impl<P: PoolAllocator<T>, T> Pool<P, T> {
             }
             None => RcGuard::new(self.allocator.allocate(), &self),
         }
-    }
-
-    /// Gets the number of objects currently in the pool.
-    ///
-    /// Returns the length of the internal storage, indicating the number of
-    /// objects that are ready to be recycled from the pool.
-    pub fn len(&self) -> usize {
-        self.storage.len()
-    }
-
-    /// Gets the capacity of the pool.
-    ///
-    /// Returns the maximum number of objects that the pool can hold. This does
-    /// not indicate the maximum number of objects that can be allocated,
-    /// but maximum objects that can be stored and recycled from the pool.
-    pub fn cap(&self) -> usize {
-        self.storage.capacity()
     }
 }
 

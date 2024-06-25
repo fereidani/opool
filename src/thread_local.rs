@@ -15,7 +15,7 @@ use core::{
 /// This struct uses an allocator to create and manage objects, and stores them
 /// in an array.
 #[derive(Debug)]
-pub struct LocalPool<P: PoolAllocator<T>, T> {
+pub struct LocalPool<P, T> {
     allocator: P,
     storage: UnsafeCell<VecDeque<T>>,
     // force the struct to be !Send
@@ -23,22 +23,6 @@ pub struct LocalPool<P: PoolAllocator<T>, T> {
 }
 
 impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
-    /// Creates a new LocalPool with a given size and allocator.
-    ///
-    /// This method immediately fills the pool with new objects created by the
-    /// allocator.
-    pub fn new_prefilled(pool_size: usize, allocator: P) -> Self {
-        let mut storage = VecDeque::with_capacity(pool_size);
-        for _ in 0..pool_size {
-            storage.push_back(allocator.allocate());
-        }
-        LocalPool {
-            allocator,
-            storage: UnsafeCell::new(storage),
-            _phantom: PhantomData,
-        }
-    }
-
     /// Creates a new Object Pool with a given size and allocator.
     ///
     /// Unlike [`Self::new_prefilled`], this method does not immediately fill
@@ -72,6 +56,41 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
         Rc::new(self)
     }
 
+    /// Gets the number of objects currently in the pool.
+    ///
+    /// Returns the length of the internal storage, indicating the number of
+    /// objects that are ready to be recycled from the pool.
+    pub fn len(&self) -> usize {
+        self.storage_borrow().len()
+    }
+
+    /// Gets the capacity of the pool.
+    ///
+    /// Returns the maximum number of objects that the pool can hold. This does
+    /// not indicate the maximum number of objects that can be allocated,
+    /// but maximum objects that can be stored and recycled from the pool.
+    pub fn cap(&self) -> usize {
+        self.storage_borrow().capacity()
+    }
+}
+
+impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
+    /// Creates a new LocalPool with a given size and allocator.
+    ///
+    /// This method immediately fills the pool with new objects created by the
+    /// allocator.
+    pub fn new_prefilled(pool_size: usize, allocator: P) -> Self {
+        let mut storage = VecDeque::with_capacity(pool_size);
+        for _ in 0..pool_size {
+            storage.push_back(allocator.allocate());
+        }
+        LocalPool {
+            allocator,
+            storage: UnsafeCell::new(storage),
+            _phantom: PhantomData,
+        }
+    }
+
     /// Gets an object from the pool.
     ///
     /// If the pool is empty, a new object is created using the allocator.
@@ -99,23 +118,6 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
             }
             None => RcLocalGuard::new(self.allocator.allocate(), &self),
         }
-    }
-
-    /// Gets the number of objects currently in the pool.
-    ///
-    /// Returns the length of the internal storage, indicating the number of
-    /// objects that are ready to be recycled from the pool.
-    pub fn len(&self) -> usize {
-        self.storage_borrow().len()
-    }
-
-    /// Gets the capacity of the pool.
-    ///
-    /// Returns the maximum number of objects that the pool can hold. This does
-    /// not indicate the maximum number of objects that can be allocated,
-    /// but maximum objects that can be stored and recycled from the pool.
-    pub fn cap(&self) -> usize {
-        self.storage_borrow().capacity()
     }
 }
 
