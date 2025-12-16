@@ -21,6 +21,15 @@ fn test_new_prefilled() {
 }
 
 #[test]
+fn test_try_get() {
+    let pool = Pool::new_prefilled(1, SimpleAllocator);
+    let guard = pool.try_get().unwrap();
+    let guard2 = pool.try_get();
+    assert_eq!(**guard, 10);
+    assert_eq!(guard2, None);
+}
+
+#[test]
 fn test_get() {
     let pool = Pool::new_prefilled(10, SimpleAllocator);
     let guard = pool.get();
@@ -32,6 +41,15 @@ fn test_get_into_inner() {
     let pool = Pool::new_prefilled(10, SimpleAllocator);
     let guard = pool.get().into_inner();
     assert_eq!(*guard, 10);
+}
+
+#[test]
+fn test_try_get_rc() {
+    let pool = Pool::new_prefilled(1, SimpleAllocator).to_rc();
+    let guard = pool.clone().try_get_rc().unwrap();
+    let guard2 = pool.clone().try_get_rc();
+    assert_eq!(**guard, 10);
+    assert_eq!(guard2, None);
 }
 
 #[test]

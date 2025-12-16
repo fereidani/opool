@@ -28,6 +28,15 @@ fn test_get_into_inner() {
 }
 
 #[test]
+fn test_try_get_rc() {
+    let pool = LocalPool::new_prefilled(1, SimpleAllocator).to_rc();
+    let guard = pool.clone().try_get_rc().unwrap();
+    let guard2 = pool.clone().try_get_rc();
+    assert_eq!(**guard, 10);
+    assert_eq!(guard2, None);
+}
+
+#[test]
 fn test_get_rc() {
     let pool = LocalPool::new_prefilled(10, SimpleAllocator).to_rc();
     let guard = pool.clone().get_rc();
