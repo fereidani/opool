@@ -1,4 +1,3 @@
-use crate::PoolAllocator;
 use alloc::{collections::VecDeque, fmt, rc::Rc};
 use core::{
     cell::UnsafeCell,
@@ -8,6 +7,8 @@ use core::{
     ops::{Deref, DerefMut},
     ptr,
 };
+
+use crate::PoolAllocator;
 
 /// A struct representing an object pool for local thread, it cannot be moved
 /// between threads.
@@ -95,10 +96,10 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
         }
     }
 
-    /// Attempts to get an object from the pool that holds an rc reference to the owning
-    /// pool. Allocated objects are not as efficient as those allocated by
-    /// [`Self::get`] method but they are easier to move as they are not limited
-    /// by allocator lifetime directly.
+    /// Attempts to get an object from the pool that holds an rc reference to
+    /// the owning pool. Allocated objects are not as efficient as those
+    /// allocated by [`Self::get`] method but they are easier to move as
+    /// they are not limited by allocator lifetime directly.
     ///
     /// If the pool is empty, None is returned.
     pub fn try_get_rc(self: Rc<Self>) -> Option<RcLocalGuard<P, T>> {
