@@ -53,7 +53,7 @@ impl<P: PoolAllocator<T>, T> Pool<P, T> {
     /// Attempts to get an object from the pool.
     ///
     /// If the pool is empty, None is returned.
-    pub fn try_get(&self) -> Option<RefGuard<P, T>> {
+    pub fn try_get(&self) -> Option<RefGuard<'_, P, T>> {
         self.storage.pop().map(|mut obj| {
             self.allocator.reset(&mut obj);
             RefGuard::new(obj, self)
@@ -63,7 +63,7 @@ impl<P: PoolAllocator<T>, T> Pool<P, T> {
     /// Gets an object from the pool.
     ///
     /// If the pool is empty, a new object is created using the allocator.
-    pub fn get(&self) -> RefGuard<P, T> {
+    pub fn get(&'_ self) -> RefGuard<'_, P, T> {
         match self.storage.pop() {
             Some(mut obj) => {
                 self.allocator.reset(&mut obj);

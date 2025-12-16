@@ -75,7 +75,7 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
     /// Attempts to get an object from the pool.
     ///
     /// If the pool is empty, None is returned.
-    pub fn try_get(&self) -> Option<RefLocalGuard<P, T>> {
+    pub fn try_get(&self) -> Option<RefLocalGuard<'_, P, T>> {
         self.storage_mut().pop_front().map(|mut obj| {
             self.allocator.reset(&mut obj);
             RefLocalGuard::new(obj, self)
@@ -85,7 +85,7 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
     /// Gets an object from the pool.
     ///
     /// If the pool is empty, a new object is created using the allocator.
-    pub fn get(&self) -> RefLocalGuard<P, T> {
+    pub fn get(&'_ self) -> RefLocalGuard<'_, P, T> {
         match self.storage_mut().pop_front() {
             Some(mut obj) => {
                 self.allocator.reset(&mut obj);
