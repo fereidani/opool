@@ -69,24 +69,3 @@ fn allocate_multi(c: &mut Criterion) {
 }
 criterion_group!(benches, allocate, allocate_multi);
 criterion_main!(benches);
-
-struct MyAllocator {}
-const BUF_SIZE: usize = 1024 * 8;
-impl PoolAllocator<Vec<u8>> for MyAllocator {
-    #[inline]
-    fn allocate(&self) -> Vec<u8> {
-        vec![0; BUF_SIZE]
-    }
-
-    // Optionally you can provide
-    #[inline]
-    fn reset(&self, _obj: &mut Vec<u8>) {
-        // You can clear or zero object fields here
-    }
-
-    #[inline]
-    fn is_valid(&self, obj: &Vec<u8>) -> bool {
-        // you can optionally is_valid if object is good to be pushed back to the pool
-        obj.capacity() == BUF_SIZE
-    }
-}
