@@ -110,6 +110,14 @@ impl<P: PoolAllocator<T>, T> Pool<P, T> {
         self.storage.len()
     }
 
+    /// Checks if the pool is empty.
+    ///
+    /// Returns `true` if there are no objects currently in the pool that are
+    /// ready to be recycled.
+    pub fn is_empty(&self) -> bool {
+        self.storage.is_empty()
+    }
+
     /// Gets the capacity of the pool.
     ///
     /// Returns the maximum number of objects that the pool can hold. This does
