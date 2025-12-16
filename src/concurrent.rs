@@ -184,7 +184,7 @@ impl<'a, P: PoolAllocator<T>, T> Drop for RefGuard<'a, P, T> {
             let _ = self
                 .pool
                 .storage
-                .push(unsafe { ptr::read(self.obj.as_mut_ptr()) });
+                .push(unsafe { self.obj.as_mut_ptr().read() });
         } else {
             unsafe {
                 ptr::drop_in_place(self.obj.as_mut_ptr());
@@ -319,7 +319,7 @@ impl<P: PoolAllocator<T>, T> Drop for RcGuard<P, T> {
             let _ = self
                 .pool
                 .storage
-                .push(unsafe { ptr::read(self.obj.as_mut_ptr()) });
+                .push(unsafe { self.obj.as_mut_ptr().read() });
         } else {
             unsafe {
                 ptr::drop_in_place(self.obj.as_mut_ptr());
