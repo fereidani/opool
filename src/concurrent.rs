@@ -50,6 +50,16 @@ impl<P: PoolAllocator<T>, T> Pool<P, T> {
         Arc::new(self)
     }
 
+    /// Attempts to get an object from the pool.
+    ///
+    /// If the pool is empty, None is returned.
+    pub fn try_get(&self) -> Option<RefGuard<P, T>> {
+        self.storage.pop().map(|mut obj| {
+            self.allocator.reset(&mut obj);
+            RefGuard::new(obj, self)
+        })
+    }
+
     /// Gets an object from the pool.
     ///
     /// If the pool is empty, a new object is created using the allocator.
@@ -61,6 +71,19 @@ impl<P: PoolAllocator<T>, T> Pool<P, T> {
             }
             None => RefGuard::new(self.allocator.allocate(), self),
         }
+    }
+
+    /// Attempts to get an object from the pool that holds an arc reference to the owning
+    /// pool. Allocated objects are not as efficient as those allocated by
+    /// [`Self::get`] method but they are easier to move as they are not limited
+    /// by allocator lifetime directly.
+    ///
+    /// If the pool is empty, None is returned.
+    pub fn try_get_rc(self: Arc<Self>) -> Option<RcGuard<P, T>> {
+        self.storage.pop().map(|mut obj| {
+            self.allocator.reset(&mut obj);
+            RcGuard::new(obj, &self)
+        })
     }
 
     /// Gets an object from the pool that holds an arc reference to the owning

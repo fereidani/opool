@@ -72,6 +72,16 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
         Rc::new(self)
     }
 
+    /// Attempts to get an object from the pool.
+    ///
+    /// If the pool is empty, None is returned.
+    pub fn try_get(&self) -> Option<RefLocalGuard<P, T>> {
+        self.storage_mut().pop_front().map(|mut obj| {
+            self.allocator.reset(&mut obj);
+            RefLocalGuard::new(obj, self)
+        })
+    }
+
     /// Gets an object from the pool.
     ///
     /// If the pool is empty, a new object is created using the allocator.
@@ -83,6 +93,19 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
             }
             None => RefLocalGuard::new(self.allocator.allocate(), self),
         }
+    }
+
+    /// Attempts to get an object from the pool that holds an rc reference to the owning
+    /// pool. Allocated objects are not as efficient as those allocated by
+    /// [`Self::get`] method but they are easier to move as they are not limited
+    /// by allocator lifetime directly.
+    ///
+    /// If the pool is empty, None is returned.
+    pub fn try_get_rc(self: Rc<Self>) -> Option<RcLocalGuard<P, T>> {
+        self.storage_mut().pop_front().map(|mut obj| {
+            self.allocator.reset(&mut obj);
+            RcLocalGuard::new(obj, &self)
+        })
     }
 
     /// Gets an object from the pool that holds an rc reference to the owning
