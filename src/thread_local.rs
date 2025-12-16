@@ -146,7 +146,7 @@ impl<P: PoolAllocator<T>, T> LocalPool<P, T> {
     /// Returns the maximum number of objects that the pool can hold. This does
     /// not indicate the maximum number of objects that can be allocated,
     /// but maximum objects that can be stored and recycled from the pool.
-    pub fn cap(&self) -> usize {
+    pub fn capacity(&self) -> usize {
         self.storage_borrow().capacity()
     }
 }
