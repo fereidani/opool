@@ -1,6 +1,6 @@
 [package]
 name = "opool"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 authors = ["Khashayar Fereidani"]
 description = "High-performance, lock-free local and concurrent object pool with automated allocation, cleanup, and verification."
